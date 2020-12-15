@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var windowsCSV = true
+
 func main() {
 	printDisclaimer()
 	var outputStdout bool
@@ -39,7 +41,7 @@ func main() {
 		// Filter input
 		sanitized, err := sanitizeInput(target)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, fmt.Sprintf("%s: Error occured: %s", target, err.Error()))
+			fmt.Fprintln(os.Stderr, fmt.Sprintf("%s: Error occurred: %s", target, err.Error()))
 		}
 		// Check if the domain has already been looked up
 		mx, ok = domainMap[sanitized]
@@ -47,10 +49,13 @@ func main() {
 			// if not, do the lookup
 			mx, err = net.LookupMX(sanitized)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, fmt.Sprintf("%s: Error occured: %s", target, err.Error()))
+				fmt.Fprintln(os.Stderr, fmt.Sprintf("%s: Error occurred: %s", target, err.Error()))
 			}
 			domainMap[sanitized] = mx
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, fmt.Sprintf("Error occurred reading input: %s", err.Error()))
 	}
 
 	processOutput(outputStdout, domainMap)
@@ -97,16 +102,18 @@ func processOutput(writeStdout bool, r map[string][]*net.MX) {
 	} else {
 		f, err := os.Create("resolved_mx_domains.csv")
 		if err != nil {
-			panic(fmt.Errorf("Opening the file resolved_my_domains.csv failed: %s", err.Error()))
+			panic(fmt.Errorf("Opening the file resolved_mx_domains.csv failed: %s", err.Error()))
 		}
 		defer f.Close()
 		b := bufio.NewWriter(f)
 		w = csv.NewWriter(b)
 	}
 
-	// Goal is to make this easy with Excel on Windows
-	w.Comma = ';'
-	w.UseCRLF = true
+	if windowsCSV {
+		// Goal is to make this easy with Excel on Windows
+		w.Comma = ';'
+		w.UseCRLF = true
+	}
 
 	// Write the data to the CSV file
 	w.Write([]string{"Domain", "MX", "Preference"})

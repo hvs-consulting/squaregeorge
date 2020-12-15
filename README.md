@@ -7,3 +7,8 @@ This information is obtained by querying all found domains for MX records.
 
 The intended use case is to identify all servers that need to be reconfigured in order to
 allow desirable mass-mailings to reach the destined recipients. 
+
+## Usage
+
+The list of mail addresses can be provided via a text file (first parameter) or via standard input.
+When the list comes from a file, the output is written to a file called ``resolved_mx_domains.csv``.
